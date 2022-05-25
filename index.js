@@ -15,6 +15,7 @@ async function run() {
         await client.connect();
         const productCollection = client.db('electronic_tools_manufacturing').collection('products');
         const bookingCollection = client.db('electronic_tools_manufacturing').collection('booking');
+        const userCollection = client.db('electronic_tools_manufacturing').collection('users');
 
         // all data load 
         app.get('/products', async (req, res) => {
@@ -48,6 +49,18 @@ async function run() {
             const query = { email: email }
             const bookings = await bookingCollection.find(query).toArray();
             res.send(bookings)
+        })
+        // user data collection api or add or update
+        app.put('/user/:email', async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const user = req.body;
+            const options = { upsert: true };
+            const updateDoc = {
+                $set: user
+            };
+            const result = await userCollection.updateOne(filter, updateDoc, options)
+            res.send(result);
         })
     }
     finally {

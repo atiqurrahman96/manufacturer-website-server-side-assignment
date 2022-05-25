@@ -8,6 +8,7 @@ app.use(cors());
 app.use(express.json());
 // connection step with mongodb
 const { MongoClient, ServerApiVersion, ObjectId } = require('mongodb');
+const res = require('express/lib/response');
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_SECRET_PASSWORD}@cluster0.vrsqm.mongodb.net/?retryWrites=true&w=majority`;
 const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology: true, serverApi: ServerApiVersion.v1 });
 // verify jwt token function 
@@ -31,6 +32,8 @@ async function run() {
         const productCollection = client.db('electronic_tools_manufacturing').collection('products');
         const bookingCollection = client.db('electronic_tools_manufacturing').collection('booking');
         const userCollection = client.db('electronic_tools_manufacturing').collection('users');
+        const reviewCollection = client.db('electronic_tools_manufacturing').collection('reviews');
+        const profileCollection = client.db('electronic_tools_manufacturing').collection('profiles');
 
         // all data load 
         app.get('/products', async (req, res) => {
@@ -72,6 +75,25 @@ async function run() {
             }
 
         })
+        // data load all users
+        app.get('/user', verifyJWT, async (req, res) => {
+            const users = await userCollection.find().toArray();
+            res.send(users);
+        })
+        // admin data
+        app.put('/user/admin/:email', verifyJWT, async (req, res) => {
+            const email = req.params.email;
+            const filter = { email: email };
+            const updateDoc = {
+                $set: {
+                    role: 'admin'
+                },
+            };
+            const result = await userCollection.updateOne(filter, updateDoc)
+
+            res.send(result);
+        })
+
         // user data collection api or add or update
         app.put('/user/:email', async (req, res) => {
             const email = req.params.email;
@@ -82,9 +104,29 @@ async function run() {
                 $set: user
             };
             const result = await userCollection.updateOne(filter, updateDoc, options)
-            const token = jwt.sign({ email: email }, process.env.ACCESS_SECRET_TOKEN, { expiresIn: '1h' })
+            const token = jwt.sign({ email: email }, process.env.ACCESS_SECRET_TOKEN, { expiresIn: '1d' })
             res.send({ result, token });
         })
+        // reviews post 
+        app.post('/reviews', async (req, res) => {
+            const doc = req.body;
+            const result = await reviewCollection.insertOne(doc);
+            res.send(result);
+        })
+        // review data load on homepage
+        app.get('/reviews', verifyJWT, async (req, res) => {
+            const query = {};
+            const cursor = reviewCollection.find(query);
+            const result = await cursor.toArray();
+            res.send(result);
+        })
+        // profile post not done yet
+        app.post('/profiles', async (req, res) => {
+            const doc = req.body;
+            const result = await profileCollection.insertOne(doc);
+            res.send(result)
+        })
+
     }
     finally {
 

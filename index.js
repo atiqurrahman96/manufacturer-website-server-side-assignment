@@ -149,7 +149,7 @@ async function run() {
             const result = await cursor.toArray();
             res.send(result);
         })
-        // profile post not done yet
+
         app.post('/profiles', async (req, res) => {
             const doc = req.body;
             const result = await profileCollection.insertOne(doc);

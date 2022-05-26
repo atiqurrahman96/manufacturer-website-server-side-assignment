@@ -69,7 +69,7 @@ async function run() {
             res.send(result)
         })
         // data load single
-        app.get('/single', async (req, res) => {
+        app.get('/singleProduct', async (req, res) => {
             const result = await addProductCollection.find().toArray();
 
             res.send(result);
@@ -143,7 +143,7 @@ async function run() {
             res.send(result);
         })
         // review data load on homepage
-        app.get('/reviews', verifyJWT, async (req, res) => {
+        app.get('/reviews', async (req, res) => {
             const query = {};
             const cursor = reviewCollection.find(query);
             const result = await cursor.toArray();
